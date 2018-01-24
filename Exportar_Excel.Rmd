@@ -1,0 +1,38 @@
+#ESTO ES PARA ESCRIBIR EN EXCEL DATOS OBTENIDOS DE INTERNET
+
+#CARGANDO PAQUETERÍA DE EXCEL
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+#install.packages("xlsx")
+require(xlsx) #Para archivos tipo xlsx
+require(quantmod) #Paquetería para descargar precios de yahoo
+```
+
+
+#Descargando precios
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+accion <- 'AMXL.MX'
+fecha  <- c('2015-01-01', '2016-01-01') 
+getSymbols(accion, src = 'yahoo', from = fecha[1], to = fecha[2] )
+```
+
+#Escribiendo datos a Excel
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+write.xlsx(AMXL, file = "Precios AMXL.xlsx", sheetName = "AMXL.MX",
+col.names = TRUE, row.names = FALSE, append = FALSE)
+```
+
+
+#Para graficar tipo de dato fecha
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+AMXL <- as.data.frame(AMXL.MX)
+AMXL$Fecha <- rownames(AMXL)  #Insertamos nueva columna de fechas
+AMXL$Fecha <- as.Date(AMXL$Fecha, format = '%Y-%m-%d') #Cambiamos el tipo de dato
+
+plot(x = AMXL[,7], y = AMXL[,6], main = "Gráfica de precios AMXL", xlab = "Día",
+     ylab = "Precio", type = "l", col = "darkred")
+```
+
+
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+
+```

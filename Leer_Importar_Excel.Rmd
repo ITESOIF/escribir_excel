@@ -1,0 +1,89 @@
+#ESTO ES PARA LEER Y TRABAJAR CON DATOS DE UN EXCEL .CSV O .XLSX
+
+#CARGANDO PAQUETERÍA DE EXCEL
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+#install.packages("readr")
+#install.packages("readxl")
+require(readxl) #Para archivos tipo xlsx
+library(readr) #Para archivos tipo csv
+```
+
+#GUARDANDO DATOS DE EXCEL EN UNA VARIABLE
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+NASDAQ <- readxl::read_excel("~/ITESO/Ejemplos/NASDAQ.xlsx", sheet = 1) #xlsx
+IBM <- read_csv("~/ITESO/Ejemplos/IBM.csv") #csv
+```
+
+#CALCULANDO RENDIMIENTOS DE LOS PRECIOS
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+#PARA NASDAQ
+for(i in 1:length(NASDAQ[[1]])){
+   if(i==length(NASDAQ[[1]])){ #Esto es para evitar una fila extra de NA
+     break
+   }
+  NASDAQ[i+1,8] <- (NASDAQ$High[i+1]/NASDAQ$Low[i])-1
+}
+colnames(NASDAQ)[8] <- "Rendimientos" 
+
+
+#PARA IBM
+for(i in 1:length(IBM[[1]])){
+  if(i==length(IBM[[1]])){
+    break
+  }
+  IBM[i+1,8] <- (IBM$High[i+1]/IBM$Low[i])-1
+}
+colnames(IBM)[8] <- "Rendimientos" 
+```
+
+
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+#CALCULANDO MEDIA
+NASDAQmed <- mean(NASDAQ$Rendimientos, na.rm=TRUE) #Se usa na.rn=TRUE porque en los rendimientos en 1,8 hay NA
+IBMmed <- mean(IBM$Rendimientos, na.rm=TRUE)
+
+#CALCULANDO VARIANZA
+NASDAQvar <- var(NASDAQ$Rendimientos, na.rm=TRUE)
+IBMvar <- var(IBM$Rendimientos, na.rm=TRUE)
+
+#CALCULANDO DESV EST
+NASDAQdesv <- sqrt(NASDAQvar)
+IBMdesv <- sqrt(IBMvar)
+```
+
+#Fechas
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+#Cambiando fecha para poder graficar
+NASDAQ <- as.data.frame(NASDAQ)
+NASDAQ$Fecha <- rownames(NASDAQ)  #Insertamos nueva columna de fechas
+NASDAQ$Fecha <- as.Date(NASDAQ$Date, format = '%Y-%m-%d') #Cambiamos el tipo de dato
+
+IBM <- as.data.frame(IBM)
+IBM$Fecha <- rownames(IBM)  #Insertamos nueva columna de fechas
+IBM$Fecha <- as.Date(IBM$Date, format = '%Y-%m-%d') #Cambiamos el tipo de dato
+```
+
+
+#GRAFICANDO PRECIOS
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+plot(x = NASDAQ[,9], y = NASDAQ[,6], main = "Gráfica de precios NASDAQ e IBM", xlab = "Día",
+     ylab = "Precio", type = "l", col = "darkred")
+lines(x = IBM[,6], type = "l", col = "gold")
+grid()
+legend("topright",legend=c("Precios NASDAQ","Precios IBM"),
+       col = c("darkred","gold"), bg = "white", lwd = 2)
+```
+#GRAFICANDO RENDIMIENTOS
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+plot(x = NASDAQ[,9], y = NASDAQ[,8], main = "Gráfica de rendimientos NASDAQ e IBM", xlab = "Día", 
+     ylab = "Rendimiento", type = "l", col = "green")
+lines(x = IBM[,8], type = "l", col = "blue")
+grid()
+legend("topright",legend = c("Rendimientos NASDAQ","Rendimientos IBM"),
+       col = c("green","blue"), bg = "white", lwd = 2)
+```
+
+
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
+
+```
