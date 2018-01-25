@@ -44,7 +44,7 @@ Bajar_Precios <- function(Columns, Tickers, Fecha_In, Fecha_Fn) {
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE}
 # Leer las acciones del archivo de Excel
-IAK <- read_excel("~/GitHub/iShares-US-Insurance-ETF_fund.xlsx", 
+IAK <- read_excel("~/GitHub/escribir_excel/iShares-US-Insurance-ETF_fund.xlsx", 
                   col_names = TRUE, sheet = "Holdings")
 
 # Guardando las acciones en un vector
@@ -68,12 +68,26 @@ fs <- c("2015-08-01", "2017-08-01")
 # Capital inicial a considerar
 Capital_Inicial <- 100000
 Comision <- 0.005
-# Descargar Precios y Calcular rendimientos
+# Descargar Precios
+Datos1 <- list()
 Datos <- list()
 
-for(i in 1:length(tk))
-  Datos[[i]] <- Bajar_Precios(Columns=cs, Ticker=tk[i], Fecha_In=fs[1], Fecha_Fn=fs[2])
+for(i in 1:length(tk)){
+  Datos1[[i]] <- Bajar_Precios(Columns=cs, Ticker=tk[i], Fecha_In=fs[1], Fecha_Fn=fs[2])}
 
+#Eliminando tickers que no se encuentran en QUANDL
+ for(i in 1:length(tk)){
+   if(length(Datos1[[i]]$adj_close) == 0){
+     va[i] <- NA
+   }
+ }
+ 
+tk <- va[is.na(va) == F]
+
+# Obteniendo datos de las acciones del ETF que si estan e QUANDL
+for(i in 1:length(tk)){
+  Datos[[i]] <- Bajar_Precios(Columns=cs, Ticker=tk[i], Fecha_In=fs[1], Fecha_Fn=fs[2])}
+ 
 names(Datos) <- tk
 ```
 
@@ -84,8 +98,9 @@ names(Datos) <- tk
 Utilizaremos la propiedad de los logarítmos para calcular los rendimientos.
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE}
-for(i in 1:length(tk))
-  Datos[[i]]$adj_close_r <- c(0, diff(log(Datos[[i]]$adj_close)))
+#Calcular rendimientos
+for(i in 1:length(tk)){
+  Datos[[i]]$adj_close_r <- c(0, diff(log(Datos[[i]]$adj_close)))}
 ```
 
 <br>
@@ -94,6 +109,7 @@ for(i in 1:length(tk))
 Las funciones a utilizar de la librería *PortfolioAnalytics* pedirán que los datos de entrada sean del tipo *XTS*.
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE}
+#Cambiar la longitud de esto con los tk nuevos no solo 3
 Rends <- xts(x = cbind(Datos[[1]]$adj_close_r, Datos[[2]]$adj_close_r, Datos[[3]]$adj_close_r),
              order.by = Datos[[1]]$date)[-1]
 names(Rends) <- tk
