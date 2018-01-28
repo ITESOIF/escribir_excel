@@ -84,7 +84,7 @@ for(i in 1:length(tk)){
  
 tk <- va[is.na(va) == F]
 
-# Obteniendo datos de las acciones del ETF que si estan e QUANDL
+# Obteniendo datos de las acciones del ETF que si estan en QUANDL
 for(i in 1:length(tk)){
   Datos[[i]] <- Bajar_Precios(Columns=cs, Ticker=tk[i], Fecha_In=fs[1], Fecha_Fn=fs[2])}
  
@@ -109,8 +109,20 @@ for(i in 1:length(tk)){
 Las funciones a utilizar de la librería *PortfolioAnalytics* pedirán que los datos de entrada sean del tipo *XTS*.
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE}
-#Cambiar la longitud de esto con los tk nuevos no solo 3
-Rends <- xts(x = cbind(Datos[[1]]$adj_close_r, Datos[[2]]$adj_close_r, Datos[[3]]$adj_close_r),
+#Agregamos todos los rendimientos de las acciones en una matriz
+filas <- as.numeric(length(Datos[[1]]$adj_close_r))
+columnas <- length(tk)
+rend1 <- matrix(nrow = 504, ncol = columnas)
+colnames(rend1) <- tk
+
+for(i in 1:columnas){
+  for(j in 1:filas){
+    rend1[j,i] <- Datos[[i]]$adj_close_r[j]
+  }
+}
+
+#Convirtiendo a XTS
+Rends <- xts(x = rend1,
              order.by = Datos[[1]]$date)[-1]
 names(Rends) <- tk
 ```
@@ -135,9 +147,16 @@ Port1 <- add.constraint(portfolio=Port1,
                         type="full_investment")
 
 # Restriccion 2: Limites superior e inferior para el valor de los pesos individuales
+LimSup <- c()
+LimInf <- c()
+va <- c() #Declaramos vector para los limites inferior y superior
+for(i in 1:length(tk)){
+  LimInf[i] <- 0.01 #Peso individual minimo
+  LimSup[i] <- 0.7 #Peso individual maximo
+}
 Port1 <- add.constraint(portfolio=Port1,
                         type="box", 
-                        min=c(0.01, 0.01, 0.01), max=c(0.7, 0.7, 0.7))
+                        min=LimInf, max=LimSup)
 
 ```
 
