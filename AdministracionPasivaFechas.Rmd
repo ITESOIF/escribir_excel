@@ -77,12 +77,15 @@ for(i in 1:length(tk)){
   Datos1[[i]] <- Bajar_Precios(Columns=cs, Ticker=tk[i], Fecha_In=fs[1], Fecha_Fn=fs[2])}
 
 #Eliminando tickers que no se encuentran en QUANDL
- for(i in 1:length(tk)){
-   if(length(Datos1[[i]]$adj_close) == 0){
-     va[i] <- NA
-   }
- }
- 
+ # for(i in 1:length(tk)){
+ #   long <- length(Datos1[[i]]$date)
+ #   if(long != ){
+ #     va[i] <- NA
+ #   }
+ # }
+ # revisar esto
+
+
 tk <- va[is.na(va) == F]
 
 # Obteniendo datos de las acciones del ETF que si estan en QUANDL
@@ -198,7 +201,7 @@ Portafolios <- vector("list", length = length(Port1$random_portfolio_objective_r
 for(i in 1:length(Port1$random_portfolio_objective_results)) {
   Portafolios[[i]]$Pesos  <- Port1$random_portfolio_objective_results[[i]]$weights
   Portafolios[[i]]$Medias <- Port1$random_portfolio_objective_results[[i]]$objective_measures$mean
-  Portafolios[[i]]$Vars   <- var.portfolio(R = Port1$R, weights = Portafolios[[i]]$Pesos) #AQUI ESTA EL ERROR
+  Portafolios[[i]]$Vars   <- var.portfolio(R = Port1$R, weights = Portafolios[[i]]$Pesos)
   names(Portafolios[[i]]$Medias) <- NULL
 }
 
