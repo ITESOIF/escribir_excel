@@ -15,7 +15,7 @@ suppressMessages(library(Quandl)) # Descargar Precios
 suppressMessages(library(PortfolioAnalytics)) # Teoría Moderna de Portafolios
 suppressMessages(library(ROI)) # Optimizacion para portafolio
 
-suppressMessages(require(readxl)) #Leer Excel
+suppressMessages(library(xlsx)) # Leer Excel
 
 suppressMessages(library(knitr))  # Opciones de documentación + código
 suppressMessages(library(kableExtra)) # Tablas en HTML
@@ -44,13 +44,14 @@ Bajar_Precios <- function(Columns, Tickers, Fecha_In, Fecha_Fn) {
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE}
 # Leer las acciones del archivo de Excel
-IAK <- read_excel("~/GitHub/escribir_excel/iShares-US-Insurance-ETF_fund.xlsx", 
-                  col_names = TRUE, sheet = "Holdings")
+IAK <- read.xlsx("~/GitHub/escribir_excel/iShares-US-Insurance-ETF_fund.xlsx", 
+                  sheetName = "Holdings", rowIndex = 9:74, colIndex = 1:12,
+                  header=TRUE)
 
 # Guardando las acciones en un vector
 va <- c() #Declaramos vector para los tickers del ETF
 for(i in 1:length(IAK[[1]])){
-  va[i] <- IAK$Ticker[i]
+  va[i] <- as.character(IAK$Ticker[i])
 }
 
 ```
@@ -122,8 +123,7 @@ for(i in 1:columnas){
 }
 
 #Convirtiendo a XTS
-Rends <- xts(x = rend1,
-             order.by = Datos[[1]]$date)[-1]
+Rends <- xts(x = rend1, order.by = Datos[[1]]$date)[-1]
 names(Rends) <- tk
 ```
 
