@@ -288,6 +288,9 @@ Ports <- cbind(rbind(Port_1, Port_2, Port_3),
                "Portafolio" = c("Máximo Rendimiento","Mínima Varianza","Máximo Sharpe Ratio"))
 ```
 
+#Tabla con 3 portafolios
+
+
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=TRUE}
 kable(Ports) %>%
   kable_styling(bootstrap_options = c("striped", "hover","condensed", "responsive"))
