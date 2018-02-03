@@ -9,15 +9,15 @@ output:
 Notas de repaso sobre 
 
 - Fecha: 23-Agosto-2017, ITESO
-- Objetivo: Construir un portafolio de inversión con 3 activos, utilizando la Teoría Moderna de Portafolios
-- Situación de aprendizaje: Diferenciar entre portafolio de inversión y estrategia de trading
-- Resultado esperado: Datos y gráfica de evolución de capital
+- Objetivo: Construir un portafolio de inversión, utilizando la Teoría Moderna de Portafolios.
+- Situación de aprendizaje: Diferenciar entre portafolio de inversión y estrategia de trading.
+- Resultado esperado: Datos y gráfica de evolución de capital.
 
 <br>
 
 ### Inicialización, descarga de precios.
 
-Se comienza con especificar algunas funciones complementarias como limpiar el environment (Seguramente correrás este código más de una vez), la forma de expresar una cifra (Sin notación científica), cargar las librerías, y los datos necesarias para descargar los precios de *QUANDL*. 
+Se comienza con especificar algunas funciones complementarias como limpiar el environment (Seguramente correrás este código más de una vez), la forma de expresar una cifra (Sin notación científica), cargar las librerías, y los datos necesarios para descargar los precios de *QUANDL*.
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
 # Remover todos los objetos del "Environment"
@@ -33,7 +33,7 @@ suppressMessages(library(PortfolioAnalytics)) # Teoría Moderna de Portafolios
 suppressMessages(library(ROI)) # Optimizacion para portafolio
 suppressMessages(library(knitr))  # Opciones de documentación + código
 suppressMessages(library(kableExtra)) # Tablas en HTML
-suppressMessages(library(xlsx))
+suppressMessages(library(xlsx)) # Leer archivo de Excel
 
 options(knitr.table.format = "html") 
 
@@ -68,7 +68,7 @@ tk <- c(as.character(tk[,1]))
 cs <- c("date", "adj_close")
 
 # Fecha inicial y fecha final
-fs <- c("2016-01-20", "2018-01-20")
+fs <- c("2017-01-20", "2018-01-20")
 
 # Descargar Precios
 Datos <- list()
@@ -82,16 +82,20 @@ names(Datos) <- tk
 Capital_Inicial <- 10000
 ```
 
+
 ### Eliminar activos sin precios
+Se seleccionan todos los activos cuyas longitudes sean iguales a la del activo con la máxima cantidad de precios, y se eliminan los activos que no tengan la misma longitud máxima seleccionada. Esto nos permite trabajar con los activos que tuvieron la misma cantidad de días de operación.
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE,warning=FALSE, message=FALSE}
 
 longitudes <- c()
 
+#Guardando las longitudes de cada activo
 for(i in 1:length(Datos)){
   longitudes[i] <- length(Datos[[i]]$date)
 }
 
+#Seleccionando los activos con los que se trabajarán
 maximo <- max(longitudes)
 completos <- which(longitudes == maximo)
 
@@ -99,11 +103,9 @@ DatosN <- Datos[completos]
 
 ```
 
-
 <br>
 
 ### Calcular los rendimientos logarítmicos.
-
 Utilizaremos la propiedad de los logarítmos para calcular los rendimientos.
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, warning=FALSE, message=FALSE}
@@ -133,7 +135,7 @@ for(i in 1:length(tk)){
 # Extraer 1 renglon para obtener los nombres de las columnas
 nombres <- colnames(Rends[1,(names(Rends) %in% nuevos)])
 
-# Elejir una columna Date y las demás columnas de rendimientos
+# Elegir una columna Date y las demás columnas de rendimientos
 RendsN <- Rends[,(names(Rends) %in% nuevos)]
 row.names(RendsN) <- Rends[,1]
 
@@ -153,8 +155,8 @@ names(RendsN) <- tk[completos]
 <br>
 
 ### Crear un objeto tipo *portfolio*
-
 Para hacerlo simplemente crea un Objeto tipo "Portfolio", especificando el nombre de los activos que contendrá.
+
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE}
 Port1 <- portfolio.spec(assets=nombres)
 ```
@@ -162,8 +164,8 @@ Port1 <- portfolio.spec(assets=nombres)
 <br>
 
 ### Especificar restricciones del portafolio
-
-En este caso especificaremos dos restricciones: Restriccion 1: La suma de todos los pesos debe de ser 1, es decir, Invertir el 100% del capital en el portafolio. 
+En este caso, especificaremos dos restricciones: 
+Restricción 1: La suma de todos los pesos debe de ser 1, es decir, invertir el 100% del capital en el portafolio. 
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE}
 Port1 <- add.constraint(portfolio=Port1,
@@ -172,11 +174,11 @@ LimSup <- c()
 LimInf <- c()
 
 for(i in 1:length(nombres)){
-  LimInf[i] <- 0.01 #Peso individual minimo
-  LimSup[i] <- 0.8 #Peso individual maximo
+  LimInf[i] <- 0.01 #Peso individual mínimo
+  LimSup[i] <- 0.8 #Peso individual máximo
 }
 
-# Restriccion 2: Limites superior e inferior para el valor de los pesos individuales
+# Restricción 2: Límites superior e inferior para el valor de los pesos individuales
  Port1 <- add.constraint(portfolio=Port1,
                          type="box", 
                          min=LimInf,
@@ -188,7 +190,6 @@ for(i in 1:length(nombres)){
 ### Especificar los objetivos del portafolio
 En este caso especificamos el objetivo de encontrar el portafolio con máximo rendimiento.
 
-
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE}
 # Restricción 3: Objetivo de rendimiento
 Port1 <- add.objective(portfolio=Port1, type="return", name="mean")
@@ -197,13 +198,12 @@ Port1 <- add.objective(portfolio=Port1, type="return", name="mean")
 <br>
 
 ### Optimizar portafolio
-
-Existen distintos métodos de optimización ofrecidos por éste paquete, utilzaremos el más simple, generar números aleatorios según el criterio interno y la búsqueda para cuando se alcance el criterio de paro, que es alcanzar un objetivo previamente declarado, en este caso el de un rendimiento esperado máximo despues de *n* iteraciones de portafolios aleatorios.
+Existen distintos métodos de optimización ofrecidos por éste paquete, utilzaremos el más simple, generar números aleatorios según el criterio interno y la búsqueda para cuando se alcance el criterio de paro, que es alcanzar un objetivo previamente declarado, en este caso, el de un rendimiento esperado máximo después de *n* iteraciones de portafolios aleatorios.
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=FALSE, message=FALSE, error=FALSE, warning=FALSE}
 Rendimientos <- as.data.frame(RendsN)
 
-# Optimizacion de portafolio con RANDOM
+# Optimización de portafolio con RANDOM
 Port1 <- optimize.portfolio(R=Rendimientos, portfolio=Port1, optimize_method = "random",
                             search_size=5000, trace=TRUE)
 ```
@@ -211,8 +211,7 @@ Port1 <- optimize.portfolio(R=Rendimientos, portfolio=Port1, optimize_method = "
 <br>
 
 ### Visualizar portafolios
-
-Vamos a construir las funciones con las cuales almacenaremos los datos que nos interesan de los portafolio encontrados, que son: Los pesos, los rendimientos esperados (Medias), el riesgo (Varianzas), así como distinguir cuales de estos portafolios se considera están dentro o en una vecindad de la frontera eficiente.
+Vamos a construir las funciones con las cuales almacenaremos los datos que nos interesan de los portafolios encontrados, que son: Los pesos, los rendimientos esperados (Medias), el riesgo (Varianzas), así como distinguir cuáles de estos portafolios se considera que están dentro o en una vecindad de la frontera eficiente.
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, fig.width=9.5}
 
@@ -264,8 +263,7 @@ Plot_portafolios
 <br>
 
 ### Gráfica histórica de portafolios
-
-Seguramente habrá un gran número de portafolios generados, para cada uno se puede calcular, por ejemplo, el valor de su postura inicial, el valor final y obtener el rendimiento final después del periodo. También, por ejemplo, se puede calcular para cada periodo (dato) el valor del portafolio, asumiendo que los pesos permanecen constantes en el tiempo, y con eso graficar el histórico de ese valo de portafolio para cada tiempo. Pero la cuestión es, qué portafolios estaría interesante de graficar. Bueno, te propongo los 3 "Más básicos": El del máximo rendimiento, el de la mínima varianza y el del máximo sharpe ratio. 
+Seguramente habrá un gran número de portafolios generados, para cada uno se puede calcular, por ejemplo, el valor de su postura inicial, el valor final y obtener el rendimiento final después del periodo. También, por ejemplo, se puede calcular para cada periodo (dato) el valor del portafolio, asumiendo que los pesos permanecen constantes en el tiempo, y con eso graficar el histórico de ese valor de portafolio para cada tiempo. Pero la cuestión es, qué portafolios estaría interesante de graficar. Bueno, te propongo los 3 "Más básicos": El del máximo rendimiento, el de la mínima varianza y el del máximo sharpe ratio. 
 
 ```{r,eval=TRUE, include=TRUE, prompt=FALSE, message=FALSE, error=FALSE, warning=FALSE}
 # Portafolio con máximo rendimiento esperado
@@ -280,7 +278,7 @@ rf <- 0.025
 rp <- df_Portafolios$Rend
 # Varianza de portafolio
 sp <- df_Portafolios$Var
-# Indice de sharpe
+# Ïndice de sharpe
 sharpe <- (rp-rf)/sp
 
 # Portafolio con máximo Sharpe ratio 
@@ -298,7 +296,6 @@ kable(Ports) %>%
 <br>
 
 ### Distinguiendo los nuevos portafolios
-
 Si quisieramos volver a graficar la nube de dispersión de puntos y localizar los portafolios elegidos en el código anterior, pregunta: ¿ Todos los portafolios estarían sobre, o al menos cerca, de la frontera eficiente ? , veamos.
 
 ```{r,eval=TRUE, include=TRUE, prompt=FALSE, message=FALSE, error=FALSE, fig.width=9.5, fig.height=6}
@@ -323,7 +320,6 @@ Plot_portafolios
 <br>
 
 ### La evolución del valor en los portafolios: El cáculo
-
 Podemos entonces, para cada portafolio (en este ejemplo analizamos 3), calcular la evolución histórica de su balance. 
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE}
@@ -349,7 +345,6 @@ for(i in 1:length(Ports[,1])) {
 <br>
 
 ### La evolución del valor en los portafolios: La gráfica
-
 También podemos visualizar el comportamiento histórico.
 
 ```{r,eval=TRUE, include=TRUE, prompt=FALSE, message=FALSE, error=FALSE, fig.width=9.5, fig.height=6}
