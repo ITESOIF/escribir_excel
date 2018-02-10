@@ -58,13 +58,13 @@ Bajar_Precios <- function(Columns, Tickers, Fecha_In, Fecha_Fn) {
 }
 
 # Tickers de acciones contenidas en ETF-IAK
-tk <- as.data.frame(read.xlsx(file = "~/GitHub/escribir_excel/iShares-US-Insurance-ETF_fund.xlsx",
+tk1 <- as.data.frame(read.xlsx(file = "~/GitHub/escribir_excel/iShares-US-Insurance-ETF_fund.xlsx",
                                  sheetName = "Holdings",
-                                 colIndex=1,
+                                 colIndex=1:4,
                                  startRow=10,
                                  endRow=73,header = FALSE))
 
-tk <- c(as.character(tk[,1]))
+tk <- c(as.character(tk1[,1]))
 cs <- c("date", "adj_close")
 
 # Fecha inicial y fecha final
@@ -262,6 +262,19 @@ Plot_portafolios
 
 <br>
 
+
+```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=TRUE}
+Pesos_Orig <- c()
+for(i in 1:length(completos)){
+  a <- which(tk[completos[i]]==as.character(tk1[,1]))
+  Pesos_Orig[i] <- as.numeric(tk1[a,4])/100
+}
+
+```
+
+
+
+
 ### Gráfica histórica de portafolios
 Seguramente habrá un gran número de portafolios generados, para cada uno se puede calcular, por ejemplo, el valor de su postura inicial, el valor final y obtener el rendimiento final después del periodo. También, por ejemplo, se puede calcular para cada periodo (dato) el valor del portafolio, asumiendo que los pesos permanecen constantes en el tiempo, y con eso graficar el histórico de ese valor de portafolio para cada tiempo. Pero la cuestión es, qué portafolios estaría interesante de graficar. Bueno, te propongo los 3 "Más básicos": El del máximo rendimiento, el de la mínima varianza y el del máximo sharpe ratio.
 
@@ -284,14 +297,16 @@ sharpe <- (rp-rf)/sp
 # Portafolio con máximo Sharpe ratio 
 Port_3 <- df_Portafolios[which.max(sharpe),]
 
-Ports <- cbind(rbind(Port_1, Port_2, Port_3),
-               "Portafolio" = c("Máximo Rendimiento","Mínima Varianza","Máximo Sharpe Ratio"))
+Ports <- cbind(rbind(Port_1, Port_2, Port_3, Port_4),
+               "Portafolio" = c("Máximo Rendimiento","Mínima Varianza","Máximo Sharpe Ratio","Portafolio Original"))
 ```
 
-#Tabla con 3 portafolios
-En la siguiente tabla se muestran los 3 portafolios, donde cada uno cumple con un criterio diferente los cuales son los siguientes:
-Máximo Rendimiento, Mínima varianza y Máximo Sharpe Ratio, respectivamente.
-En esta tabla podemos observar la cantidad de títulos iniciales y el porcentaje de participación de cada uno de los activos que componen los 3 portafolios seleccionados.
+
+
+#Tabla con 4 portafolios
+En la siguiente tabla se muestran 4 portafolios, donde 3 de ellos cumplen con un criterio diferente los cuales son los siguientes:
+Máximo Rendimiento, Mínima varianza y Máximo Sharpe Ratio, respectivamente. Mientras que el 4to portafolio es el portafolio original del ETF con el que se está trabajando.
+En esta tabla podemos observar la cantidad de títulos iniciales y el porcentaje de participación de cada uno de los activos que componen los 4 portafolios seleccionados.
 
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=TRUE}
 kable(Ports) %>%
