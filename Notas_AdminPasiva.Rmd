@@ -272,11 +272,16 @@ for(i in 1:length(completos)){
   Pesos_Orig[i] <- as.numeric(tk1[a,4])/100
 }
 
-#Agregando fila de los pesos originales a los rendimientos diarios
-p4 <- rbind(Rendimientos,Pesos_Orig)
+varianzas <- c()
+for(i in 1:length(completos)){
+  varianzas[i] <- var(Rendimientos[,i])
+}
+
+#Agregando fila de los pesos originales y varianzas a los rendimientos diarios
+p4 <- rbind(Rendimientos,Pesos_Orig,varianzas)
 
 Peso_Or <- length(p4[,1])
-Rend_Or <- Peso_Or-1
+VaOr <- Peso_Or-1
 
 rendOr <- c() #Vector para el rendimiento del portafolio original diario
 varOr <- c() #Vector para la desv est del portafolio original diario
@@ -284,35 +289,39 @@ varOr <- c() #Vector para la desv est del portafolio original diario
 #Obteniendo rendimientos y desv est diarios del port original
 for(i in 1:Peso_Or){
   
-  if(i==Peso_Or){
+  if((i==Peso_Or)||(i==VaOr)){
     rendOr[i] <- 0
   }
   else{
     suma <- 0
     for(j in 1:length(completos)){
-    suma <- suma + as.numeric(p4[i,j])
+    suma <- suma + (as.numeric(p4[i,j])*as.numeric(p4[Peso_Or,j]))
     }
-    rendOr[i] <- suma/length(completos)
+    rendOr[i] <- suma #Rendimiento del port original de cada día
   }
 }
+#REVISAR ESTE CICLO TAMBIEN
 for(i in 1:Peso_Or){
   
-  if(i==Peso_Or){
+  if((i==Peso_Or)||(i==VaOr)){
     varOr[i] <- 0
   }
   else{
     suma <- 0
+    suma2 <- 1
     for(j in 1:length(completos)){
-      suma <- (suma + (as.numeric(p4[i,j]) + as.numeric(rendOr[i]))^2)/length(completos)
+    suma <- suma + (as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))^2 
+    suma2 <- suma2*(as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))
     }
-    varOr[i] <- sqrt(suma)
+    mult <- suma + (2*suma2)#Aqui falta agregar la covarianza
+    varOr[i] <- mult #Desv Est del port original de cada día
   }
 }
 
 #Agregando los rendimiento y desvaciones estándar diarios
-p4 <- cbind(p4,rendOr)
+p4 <- cbind(p4,varOr)
 
-
+#A PARTIR DE AQUI ESTO ESTA INCOMPLETO
 #Creando el portafolio origial a la fecha más reciente
 ipar <- 5
 impar <- 4
