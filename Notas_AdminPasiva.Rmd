@@ -272,6 +272,7 @@ for(i in 1:length(completos)){
   Pesos_Orig[i] <- as.numeric(tk1[a,4])/100
 }
 
+#Calculando varianzas de cada activo
 varianzas <- c()
 for(i in 1:length(completos)){
   varianzas[i] <- var(Rendimientos[,i])
@@ -280,14 +281,14 @@ for(i in 1:length(completos)){
 #Agregando fila de los pesos originales y varianzas a los rendimientos diarios
 p4 <- rbind(Rendimientos,Pesos_Orig,varianzas)
 
-Peso_Or <- length(p4[,1])
-VaOr <- Peso_Or-1
+VaOr <- length(p4[,1]) #Pos var
+Peso_Or <- VaOr-1 #Pos part
 
 rendOr <- c() #Vector para el rendimiento del portafolio original diario
 varOr <- c() #Vector para la desv est del portafolio original diario
 
 #Obteniendo rendimientos y desv est diarios del port original
-for(i in 1:Peso_Or){
+for(i in 1:VaOr){
   
   if((i==Peso_Or)||(i==VaOr)){
     rendOr[i] <- 0
@@ -300,8 +301,8 @@ for(i in 1:Peso_Or){
     rendOr[i] <- suma #Rendimiento del port original de cada día
   }
 }
-#REVISAR ESTE CICLO TAMBIEN
-for(i in 1:Peso_Or){
+
+for(i in 1:VaOr){
   
   if((i==Peso_Or)||(i==VaOr)){
     varOr[i] <- 0
@@ -313,34 +314,13 @@ for(i in 1:Peso_Or){
     suma <- suma + (as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))^2 
     suma2 <- suma2*(as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))
     }
-    mult <- suma + (2*suma2)#Aqui falta agregar la covarianza
+    mult <- suma + (2*suma2*cov(Rendimientos))#Aqui falta agregar la covarianza
     varOr[i] <- mult #Desv Est del port original de cada día
   }
 }
 
 #Agregando los rendimiento y desvaciones estándar diarios
-p4 <- cbind(p4,varOr)
-
-#A PARTIR DE AQUI ESTO ESTA INCOMPLETO
-#Creando el portafolio origial a la fecha más reciente
-ipar <- 5
-impar <- 4
-cont <- 0
-
-Port_4 <- matrix(nrow = 1, ncol = 131)
-Port_4[1,1] <- 3#rendOr
-Port_4[1,2] <- 4#varOr
-Port_4[1,3] <- "No-Frontera"
-
-for(i in 1:131){
-  if(i>=4){
-    Port_4[1,impar] <-  p4[Peso_Or,cont+1]#Peso activo or
-    Port_4[1,ipar] <- 0 #Titulos
-    ipar <- ipar+2
-    impar <- impar+2
-    cont <- cont+1
-  }
-}
+p4 <- cbind(p4,rendOr,varOr)
 
 ```
 
@@ -369,13 +349,40 @@ sharpe <- (rp-rf)/sp
 # Portafolio con máximo Sharpe ratio 
 Port_3 <- df_Portafolios[which.max(sharpe),]
 
+```
+
+
+
+```{r,eval=TRUE, include=TRUE, prompt=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+#Creando el portafolio origial a la fecha más reciente
+ipar <- 5
+impar <- 4
+cont <- 0
+
+Port_4 <- matrix(nrow = 1, ncol = length(Port_1))
+Port_4[1,1] <- rendOr[length(rendOr)-2]
+Port_4[1,2] <- varOr[length(varOr)-2]
+Port_4[1,3] <- "No-Frontera"
+
+for(i in 1:length(Port_1)){
+  if(i>=4){
+    Port_4[1,impar] <-  p4[Peso_Or,cont+1]#Peso activo or
+    Port_4[1,ipar] <- 0 #Titulos
+    ipar <- ipar+2
+    impar <- impar+2
+    cont <- cont+1
+  }
+  else{
+    ""
+  }
+}
+
 # Portafolio original
 Port_4 <- as.data.frame(Port_4)
 
 Ports <- cbind(rbind(Port_1, Port_2, Port_3, Port_4),
-               "Portafolio" = c("Máximo Rendimiento","Mínima Varianza","Máximo Sharpe Ratio", "Portafolio Original"))
+               "Portafolio" = c("Máximo Rendimiento", "Mínima Varianza", "Máximo Sharpe Ratio", "Portafolio Original"))
 ```
-
 
 
 #Tabla con 4 portafolios
