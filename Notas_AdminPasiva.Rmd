@@ -264,13 +264,22 @@ Plot_portafolios
 
 #Obteniendo Portafolio Original del ETF
 ```{r,eval=TRUE, include=TRUE, echo=TRUE, prompt=TRUE}
-Pesos_Orig <- c() #Vector de pesos
+Pesos_Orig <- c() #Vector de pesos iguales
+No_Pesos_Or <- c() #Vector de pesos diferentes
+
 
 #Obteniendo pesos de los activos que sí están en WikiPrices
 for(i in 1:length(completos)){
   a <- which(tk[completos[i]]==as.character(tk1[,1]))
+  b <- which(tk[completos]==as.character(tk1[i,1]))
   Pesos_Orig[i] <- as.numeric(tk1[a,4])/100
+  if(length(b)==0){
+    No_Pesos_Or[i] <- as.character(tk1[i,1])
+  }
 }
+#Guardando los activos que NO aparecen en WIKIPRICES
+No_Pesos_Or <- na.omit(No_Pesos_Or)
+
 
 #Calculando varianzas de cada activo
 varianzas <- c()
@@ -314,7 +323,7 @@ for(i in 1:VaOr){
     suma <- suma + (as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))^2 
     suma2 <- suma2*(as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))
     }
-    mult <- suma + (2*suma2*cov(Rendimientos))#Aqui falta agregar la covarianza
+    mult <- suma + (2*suma2*cov(Rendimientos))
     varOr[i] <- mult #Desv Est del port original de cada día
   }
 }
