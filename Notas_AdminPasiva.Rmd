@@ -311,25 +311,25 @@ for(i in 1:VaOr){
   }
 }
 
-for(i in 1:VaOr){
-  
-  if((i==Peso_Or)||(i==VaOr)){
-    varOr[i] <- 0
-  }
-  else{
-    suma <- 0
-    suma2 <- 1
-    for(j in 1:length(completos)){
-    suma <- suma + (as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))^2 
-    suma2 <- suma2*(as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))
-    }
-    mult <- suma + (2*suma2*cov(Rendimientos))
-    varOr[i] <- mult #Desv Est del port original de cada día
-  }
-}
+# for(i in 1:VaOr){
+#   
+#   if((i==Peso_Or)||(i==VaOr)){
+#     varOr[i] <- 0
+#   }
+#   else{
+#     suma <- 0
+#     suma2 <- 1
+#     for(j in 1:length(completos)){
+#     suma <- suma + (as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))^2 
+#     suma2 <- suma2*(as.numeric(p4[VaOr,j])*as.numeric(p4[Peso_Or,j]))
+#     }
+#     mult <- suma + (2*suma2*cov(Rendimientos))
+#     varOr[i] <- mult #Desv Est del port original de cada día
+#   }
+# }
 
 #Agregando los rendimiento y desvaciones estándar diarios
-p4 <- cbind(p4,rendOr,varOr)
+p4 <- cbind(p4,rendOr) #varOr
 
 ```
 
