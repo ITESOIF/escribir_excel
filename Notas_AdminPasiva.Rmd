@@ -354,7 +354,7 @@ Port_3 <- df_Portafolios[which.max(sharpe),]
 ```{r,eval=TRUE, include=TRUE, prompt=FALSE, message=FALSE, error=FALSE, warning=FALSE}
 # Portafolio original
 Port_4 <- matrix(nrow = 1, ncol = 2)
-Port_4[1,1] <- max(p4$rendOr)
+Port_4[1,1] <- rendOr[which.max(rendOr)]
 Port_4[1,2] <- varOr[length(varOr)-2]
 Port_4 <- as.data.frame(Port_4)
 
@@ -410,13 +410,13 @@ Plot_portafolios <- plot_ly(x=df_Portafolios$Var, y=df_Portafolios$Rend, type='s
                                         showgrid = F),
                            yaxis = list(title = "Valor Esperado (Rendimiento Anualizado)"),
                            legend = list(orientation = 'h', y = -0.25)) %>%
-                    add_trace(x = ~Ports$Var[1], y = ~Ports$Rend[1], name = Ports$Portafolio[1],
+                    add_trace(x = ~Ports$Varianza[1], y = ~Ports$Rendimiento[1], name = Ports$Portafolio[1],
                               mode = 'marker', marker = list(color="red", size=10)) %>%
-                    add_trace(x = ~Ports$Var[2], y = ~Ports$Rend[2], name = Ports$Portafolio[2],
+                    add_trace(x = ~Ports$Varianza[2], y = ~Ports$Rendimiento[2], name = Ports$Portafolio[2],
                               mode = 'marker', marker = list(color="blue", size=10)) %>%
-                    add_trace(x = ~Ports$Var[3], y = ~Ports$Rend[3], name = Ports$Portafolio[3],
+                    add_trace(x = ~Ports$Varianza[3], y = ~Ports$Rendimiento[3], name = Ports$Portafolio[3],
                               mode = 'marker', marker = list(color="orange", size=10)) %>%
-                    add_trace(x = ~Ports$Var[4], y = ~Ports$Rend[4], name = Ports$Portafolio[4],
+                    add_trace(x = ~Ports$Varianza[4], y = ~Ports$Rendimiento[4], name = Ports$Portafolio[4],
                               mode = 'marker', marker = list(color="limegreen", size=10))
 Plot_portafolios
 ```
