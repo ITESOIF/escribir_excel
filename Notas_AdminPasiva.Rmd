@@ -428,11 +428,8 @@ Plot_portafolios
 pesos1 <- c()
 pesos2 <- c()
 pesos3 <- c()
-p <- length(p4[,1])-2
 
-Portafolio_1 = matrix(nrow = p, ncol = 4)
-colnames(Portafolio_1) = c("Portafolio_1", "Portafolio_2", "Portafolio_3", "Portafolio_4")
-
+#Obteniendo los pesos de cada portafolio
 for(i in 1:length(Port_1)){
   if((i%%2==0)&&(i>3)){
     pesos1[i] <- Port_1[i]
@@ -446,18 +443,47 @@ for(i in 1:length(Port_1)){
   }
 }
 
-pesos1 <- na.omit(pesos1)
-pesos2 <- na.omit(pesos2)
-pesos3 <- na.omit(pesos3)
+#Quitando los NA de los pesos de cada portafolio
+pesos1 <- pesos1[!is.na(pesos1)] #Pesos máximo rendimiento 
+pesos2 <- pesos2[!is.na(pesos2)] #Pesos mínima varianza
+pesos3 <- pesos3[!is.na(pesos3)] #Pesos máximo sharpe
 
-for(i in 1:p){
-  suma <- 0
-  for(j in j:4){
-    suma <- suma + (as.numeric(Rendimientos[i,j])*as.numeric(pesos1[i]))
+#Obteniendo rendimientos diarios de los portafolios
+rend1 <- c() #Vector para el rendimiento del portafolio max rend diario
+rend2 <- c() #Vector para el rendimiento del portafolio min var diario
+rend3 <- c() #Vector para el rendimiento del portafolio max sharpe diario
+rend4 <- c() #Vector para el rendimiento del portafolio original diario
+
+for(i in 1:length(Rendimientos[,1])){
+  suma1 <- 0
+  suma2 <- 0
+  suma3 <- 0
+  suma4 <- 0
+  for(j in 1:length(completos)){
+    suma1 <- suma1 + (as.numeric(Rendimientos[i,j])*as.numeric(pesos1[j]))
+    suma2 <- suma2 + (as.numeric(Rendimientos[i,j])*as.numeric(pesos2[j]))
+    suma3 <- suma3 + (as.numeric(Rendimientos[i,j])*as.numeric(pesos3[j]))
+    suma4 <- suma4 + (as.numeric(Rendimientos[i,j])*as.numeric(Pesos_Orig[j]))
   }
-  Portafolio_1[i,j] <- suma #Rendimiento del port original de cada día
+  rend1[i] <- suma1 #Rendimiento del port max rend de cada día
+  rend2[i] <- suma2 #Rendimiento del port min var de cada día
+  rend3[i] <- suma3 #Rendimiento del port max sharpe de cada día
+  rend4[i] <- suma4 #Rendimiento del port original de cada día
 }
 
+#Obteniendo vector de fechas
+fechas <- c()
+for(i in 1:length(Rendimientos[,1])+1){
+  if(i==1){
+    fechas[i] <- NA
+  }
+  else{
+    fechas[i] <- Datos[[1]]$date[i]
+  }
+}
+fechas <- fechas[!is.na(fechas)]
+
+p5 <- cbind(Rendimientos, fechas, rend1, rend2, rend3, rend4)
 ```
 
 <br>
@@ -467,18 +493,17 @@ También podemos visualizar el comportamiento histórico.
 
 ```{r,eval=TRUE, include=TRUE, prompt=FALSE, message=FALSE, error=FALSE, fig.width=9.5, fig.height=6}
 
-plot_ly(Historicos_Ports) %>%
- add_trace(x = ~Date, y = ~round(Portafolio_1,2), type = 'scatter', mode = 'lines', name = 'Máximo Rendimiento',
-            line = list(color = 'red'), hoverinfo = "text", text = ~paste('Port_1',round(Portafolio_1,2))) %>%
-  add_trace(x = ~Date, y = ~round(Portafolio_2,2), type = 'scatter', mode = 'lines', name = 'Mínima Varianza',
-            line = list(color = 'blue'), hoverinfo = "text", text = ~paste('Port_2',round(Portafolio_2,2)))  %>%
-  add_trace(x = ~Date, y = ~round(Portafolio_3,2), type = 'scatter', mode = 'lines', name = 'Máximo Sharpe Ratio',
-            line = list(color = 'orange'), hoverinfo = "text", text = ~paste('Port_3',round(Portafolio_3,2)))%>% 
-  add_trace(x = ~Date, y = ~round(Portafolio_4,2), type = 'scatter', mode = 'lines', name = 'Portafolio Original',
-            line = list(color = 'limegreen'), hoverinfo = "text", text = ~paste('Port_4',round(Portafolio_4,2)))  %>%
+plot_ly(x = p5$fechas, y = p5$rend1, type = 'scatter', mode = 'lines', name = 'Máximo Rendimiento',
+            line = list(color = 'red'), hoverinfo = "text", text = ~paste('Port_1', p5$rend1)) %>%
+  add_trace(x = p5$fechas, y = p5$rend2, type = 'scatter', mode = 'lines', name = 'Mínima Varianza',
+            line = list(color = 'blue'), hoverinfo = "text", text = ~paste('Port_2', p5$rend2))  %>%
+  add_trace(x = p5$fechas, y = p5$rend3, type = 'scatter', mode = 'lines', name = 'Máximo Sharpe Ratio',
+            line = list(color = 'orange'), hoverinfo = "text", text = ~paste('Port_3', p5$rend3))%>% 
+  add_trace(x = p5$fechas, y = p5$rend4, type = 'scatter', mode = 'lines', name = 'Portafolio Original',
+            line = list(color = 'limegreen'), hoverinfo = "text", text = ~paste('Port_4',p5$rend4))  %>%
   layout(title = "3 Portafolios distintos  vs Portafolio original",
          xaxis = list(title = "Fechas", showgrid = T),
-         yaxis = list(title = "Balance"), 
+         yaxis = list(title = "Evolución del rendimiento"), 
          legend = list(orientation = 'h', y = -0.25, x = 0.5))
 
 ```
