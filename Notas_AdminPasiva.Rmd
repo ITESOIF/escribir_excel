@@ -423,25 +423,39 @@ Plot_portafolios
 
 <br>
 
-### La evolución del valor en los portafolios: El cáculo
-Podemos entonces, para cada portafolio (en este ejemplo analizamos 3), calcular la evolución histórica de su balance. 
-
+#Obteniendo rendimientos históricos de cada portafolio
 ```{r,eval=TRUE, include=TRUE, echo=TRUE}
+pesos1 <- c()
+pesos2 <- c()
+pesos3 <- c()
+p <- length(p4[,1])-2
 
-# Pesos y titulos iniciales, de todos los activos, para los 3 portafolios
-Pesos_Titulos <- Ports[,-c(1,2,3)]
+Portafolio_1 = matrix(nrow = p, ncol = 4)
+colnames(Portafolio_1) = c("Portafolio_1", "Portafolio_2", "Portafolio_3", "Portafolio_4")
 
-# Encontrar las columnas cuyo nombre contenga "Titulos_ini", con esas encontraremos más fácil los títulos
-# por portafolio por activo
-Ind <- grep(pattern = "Titulos_ini",x = colnames(Pesos_Titulos))
-Historicos_Ports <- data.frame("Date" = Datos[[1]]$date)
+for(i in 1:length(Port_1)){
+  if((i%%2==0)&&(i>3)){
+    pesos1[i] <- Port_1[i]
+    pesos2[i] <- Port_2[i]
+    pesos3[i] <- Port_3[i]
+  }
+  else{
+    pesos1[i] <- NA
+    pesos2[i] <- NA
+    pesos3[i] <- NA
+  }
+}
 
-# Crear data frame que contendrá los datos finales de cada estrategia
-for(i in 1:length(Ports[,1])) {
-  Historicos_Ports[[paste("Portafolio_",i,sep="")]] <- 
-    (Datos[[1]]$adj_close*Pesos_Titulos[i,Ind[1]]  + 
-     Datos[[2]]$adj_close*Pesos_Titulos[i,Ind[2]] +
-     Datos[[3]]$adj_close*Pesos_Titulos[i,Ind[3]])
+pesos1 <- na.omit(pesos1)
+pesos2 <- na.omit(pesos2)
+pesos3 <- na.omit(pesos3)
+
+for(i in 1:p){
+  suma <- 0
+  for(j in j:4){
+    suma <- suma + (as.numeric(Rendimientos[i,j])*as.numeric(pesos1[i]))
+  }
+  Portafolio_1[i,j] <- suma #Rendimiento del port original de cada día
 }
 
 ```
@@ -460,7 +474,9 @@ plot_ly(Historicos_Ports) %>%
             line = list(color = 'blue'), hoverinfo = "text", text = ~paste('Port_2',round(Portafolio_2,2)))  %>%
   add_trace(x = ~Date, y = ~round(Portafolio_3,2), type = 'scatter', mode = 'lines', name = 'Máximo Sharpe Ratio',
             line = list(color = 'orange'), hoverinfo = "text", text = ~paste('Port_3',round(Portafolio_3,2)))%>% 
-  layout(title = "3 Portafolios distintos objetivos",
+  add_trace(x = ~Date, y = ~round(Portafolio_4,2), type = 'scatter', mode = 'lines', name = 'Portafolio Original',
+            line = list(color = 'limegreen'), hoverinfo = "text", text = ~paste('Port_4',round(Portafolio_4,2)))  %>%
+  layout(title = "3 Portafolios distintos  vs Portafolio original",
          xaxis = list(title = "Fechas", showgrid = T),
          yaxis = list(title = "Balance"), 
          legend = list(orientation = 'h', y = -0.25, x = 0.5))
